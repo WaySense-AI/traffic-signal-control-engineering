@@ -1,0 +1,19 @@
+cff-version: 1.2.0
+message: "If you use this book or SignalLab in academic work, please cite it as below."
+title: "交通信号控制工程：数据、配时与执行"
+abstract: "从路口建模、交通数据与控制输入出发，讲解单点配时、约束优化、自适应控制、区域协调、双向绿波、控制评价与平台工程。"
+authors:
+  - family-names: "郭"
+    given-names: "海锋"
+    affiliation: "WaySense"
+version: "3.19"
+date-released: "2026-11-19"
+license: "CC-BY-NC-SA-4.0"
+repository-code: "https://github.com/WaySense-AI/traffic-signal-control-engineering"
+keywords:
+  - traffic signal control
+  - traffic engineering
+  - signal timing
+  - green wave
+  - MaxBand
+  - adaptive control

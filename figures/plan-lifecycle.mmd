@@ -1,0 +1,16 @@
+stateDiagram-v2
+    [*] --> Draft
+    Draft --> Calculated: 算法生成或复制
+    Calculated --> Edited: 人工修改
+    Edited --> Validated: 校验通过
+    Calculated --> Validated: 校验通过
+    Validated --> Scheduled: 绑定调度
+    Scheduled --> DispatchPending: 到达执行时间
+    DispatchPending --> Dispatched: 设备接受
+    Dispatched --> Active: 运行状态确认
+    DispatchPending --> Failed: 超时或拒绝
+    Dispatched --> Failed: 执行状态不一致
+    Failed --> RollbackPending: 选择回滚
+    RollbackPending --> Active: 恢复旧方案
+    Active --> Superseded: 新版本生效
+

@@ -1,0 +1,20 @@
+title: 交通信号控制工程
+description: 数据、配时与执行
+
+remote_theme: just-the-docs/just-the-docs
+plugins:
+  - jekyll-remote-theme
+
+heading_anchors: true
+search_enabled: true
+
+exclude:
+  - signal-lab/
+  - figures/README.md
+  - tools/
+  - release/
+  - licenses/
+  - requirements.txt
+  - "*.py"
+  - "*.json"
+  - "*.ipynb"

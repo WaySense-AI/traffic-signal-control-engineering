@@ -1,0 +1,41 @@
+# 第三方声明
+
+本仓库包含或引用以下第三方材料。它们不适用本仓库正文的 CC BY-NC-SA 4.0 许可。
+
+## 字体
+
+- **Noto Sans SC**
+- **Noto Sans Mono CJK SC**
+
+Copyright 2014–2025 Adobe (http://www.adobe.com/), with Reserved Font Name "Source".
+Noto is a trademark of Google Inc.
+
+Licensed under the SIL Open Font License, Version 1.1.
+完整文本见 `licenses/OFL-1.1.txt`，或 https://openfontlicense.org
+
+本仓库不分发字体二进制文件；PDF 中的字体子集仅用于该书排版。
+
+## Python 构建工具
+
+- **python-docx** — MIT License；完整文本见 `licenses/python-docx-MIT.txt`
+- **Pillow** — HPND/MIT-CMU License；完整文本见 `licenses/Pillow-HPND.txt`
+
+这些工具仅用于生成 DOCX 和图表，不随书稿正文发布。
+
+## 插图工具
+
+部分插图由 **anidoodle 0.10.1** 生成。anidoodle 引擎采用 Apache License 2.0；
+本仓库不分发引擎源码，只包含生成后的 PNG 插图。anidoodle 工程没有可用的 Git 提交；
+以 `package.json` 的 SHA-256、源 film 的 SHA-256 和输出 PNG 的 MD5 作为可复现记录。
+具体源 film、版本和输出校验值见 `figures/README.md`。
+
+## 生产代码片段
+
+书中的生产代码片段由作者及原生产系统权利人授权，用于工程分析与教学引用。
+这些片段不构成独立代码许可，也不构成生产部署许可；不得直接用于真实信号机。
+片段著作权仍归原权利人，不适用 SignalLab 的 MIT 许可。
+
+## 标准、论文与设备资料
+
+书中的标准、论文、设备手册和引用材料仍归原权利人所有。正文只做必要的书目引用和
+工程解释，不复制标准全文或受版权保护的图表。

@@ -1,0 +1,16 @@
+Copyright (c) 2026 郭海锋
+
+本仓库采用分许可方式，不同部分适用不同许可证：
+
+1. 书稿正文、插图与合成数据
+   Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International
+   （CC BY-NC-SA 4.0）。完整条款见 LICENSE-CONTENT。
+
+2. SignalLab 源码与示例代码
+   MIT License。完整条款见 LICENSE-CODE。
+
+3. 第三方字体、标准、论文、设备手册和其他材料
+   仍归原权利人所有，适用其原始许可。本书不授予这些材料的额外权利。
+   详见 NOTICE。
+
+如某一文件内另有明确许可声明，以该文件内的声明为准。

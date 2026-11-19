@@ -1,0 +1,26 @@
+# 系统 / 缓存
+.DS_Store
+__pycache__/
+*.py[cod]
+*.egg-info/
+.dsh-office.*
+
+# 渲染产物
+build/
+*.tmp
+tmp/
+
+# 下载字体（OFL 允许再分发，但没必要让仓库多 20MB 二进制）
+tools/fonts/
+
+# 内部文档，不公开
+COMPLIANCE-AUDIT.md
+STATUS.md
+PLAN.md
+EDITORIAL_AUDIT.md
+DELIVERY.md
+BUILD.md
+OPEN-SOURCE-PLAN.md
+ERRATA.md
+research/
+review/

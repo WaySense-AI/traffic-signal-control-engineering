@@ -1,0 +1,23 @@
+flowchart LR
+    detector[检测器与车辆事件]
+    network[路网与路口模型]
+    data[实时数据链路]
+    algorithm[配时与协调算法]
+    recommendation[候选控制方案]
+    review[校验与人工审核]
+    dispatcher[方案下发服务]
+    controller[信号机]
+    observer[实时状态与效果评价]
+
+    detector --> data
+    network --> data
+    data --> algorithm
+    network --> algorithm
+    algorithm --> recommendation
+    recommendation --> review
+    review --> dispatcher
+    dispatcher --> controller
+    controller --> observer
+    observer --> data
+    network --> review
+
