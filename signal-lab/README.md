@@ -88,24 +88,6 @@ signal-lab/
 
 持续集成在书稿仓库根的 `.github/workflows/ci.yml`：从 `signal-lab/` 目录跑测试与实验，覆盖 Python 3.9–3.12。
 
-## 给 Agent 的说明
-
-Agent 应先进入 `signal-lab/` 目录再执行：
-
-```bash
-python3 run_all.py
-```
-
-约束：
-
-- 工作目录必须是 `signal-lab/`（书稿仓库中）或独立仓库根目录；
-- 不需要 `pip install`，也不需要网络；
-- 不要为了让测试通过而修改 `tests/`；
-- 实验输出是确定性的，同一 Python 版本重复运行应逐字节一致；
-- 若环境会写入字节码缓存，使用 `PYTHONDONTWRITEBYTECODE=1`。
-
-详细说明见 [AGENTS.md](AGENTS.md)。
-
 ## 范围与边界
 
 SignalLab 是教学系统，不是生产控制器。它用于解释交通信号控制中的时间、需求、约束、执行和评价机制，不能未经审查直接用于控制真实信号机。

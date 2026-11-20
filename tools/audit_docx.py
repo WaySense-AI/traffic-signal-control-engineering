@@ -13,6 +13,15 @@ from docx.oxml.ns import qn
 
 
 ROOT = Path(__file__).resolve().parents[1]
+META = ROOT / "tools" / "book-meta.json"
+
+
+def current_version() -> str:
+    """Version string from book-meta.json, so the default paths never drift."""
+    try:
+        return json.loads(META.read_text(encoding="utf-8")).get("version", "")
+    except (OSError, ValueError):
+        return ""
 
 
 def audit(path: Path) -> dict:
@@ -111,15 +120,17 @@ def audit(path: Path) -> dict:
 
 
 def main() -> int:
+    version = current_version()
+    suffix = f"_{version}" if version else ""
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "docx",
         nargs="?",
-        default=str(ROOT / "build" / "交通信号控制工程_v3.19.docx"),
+        default=str(ROOT / "build" / f"交通信号控制工程{suffix}.docx"),
     )
     parser.add_argument(
         "--out",
-        default=str(ROOT / "build" / "a11y-report-v3.19.json"),
+        default=str(ROOT / "build" / f"a11y-report-{version or 'v3'}.json"),
     )
     args = parser.parse_args()
 
