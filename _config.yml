@@ -13,7 +13,6 @@ exclude:
   - figures/README.md
   - tools/
   - release/
-  - licenses/
   - requirements.txt
   - "*.py"
   - "*.json"

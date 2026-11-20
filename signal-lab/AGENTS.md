@@ -1,8 +1,9 @@
 # Agent notes
 
-Work from the repository root.
+Work from this directory (`signal-lab/`), not from the book repository root.
 
 ```bash
+cd signal-lab      # if you are at the book repository root
 python3 run_all.py
 ```
 

@@ -7,9 +7,11 @@ parent: "第七部分 生产源码精读"
 
 # 第 26 章 生产单点优化器：从周期到阶段时长
 
+> 本章代码为生产源码摘录，省略 import、依赖注入、日志和其他方法；不能单独运行。
+
 第 25 章把流量一路送到算法入口；这一章看入口之后，周期和阶段时长到底怎么算出来。生产单点优化不存在一条唯一的“标准调用”。同一套实现里至少有 `SingleNodeOpt`、`SingleNodeOptModel`、`SingleNodeOptNaive`、`MinuteSingleNodeAdaptive` 和 `SingleAdaptive` 五条路径。它们共享部分概念，却使用不同的周期模型、候选方案和修复规则。把这些路径统称为“AI 配时”会让代码阅读失去意义。
 
-本章选择两个当前最关键的 Python 实现：离线方案库生成的 model 路径，以及分钟/周期自适应使用的 `SingleAdaptive`。先读 Webster 数值层，再读外层调度和数据转换。
+本章选择两个当前最关键的 Python 实现：离线方案库生成的 model 路径，以及分钟/周期自适应使用的 `SingleAdaptive`。先读 Webster 的数值计算，再读外层调度和数据转换。
 
 ## 26.1 入口与调用链
 
@@ -74,7 +76,7 @@ def get_cycle(
     return C_0
 ```
 
-这段代码和许多教材中的 Webster 公式有一个关键差异：生产实现把关键流量比 `Y` 上限钳到 `0.97`，而不是在 `Y>=1` 时直接报不可行。`0.97` 使分母最小为 `0.03`，从而避免除零和无有限值。
+这段代码和许多教材中的 Webster 公式有一个关键差异：生产实现把关键流量比 `Y` 限幅到 `0.97`，而不是在 `Y>=1` 时直接报不可行。`0.97` 使分母最小为 `0.03`，从而避免除零和无有限值。
 
 这个限幅是数值保护，不是容量证明。`Y=1.10` 和 `Y=0.97` 在这里会得到同一个分母，随后仍由外部周期上下限和饱和度评价处理过饱和。阅读结果时如果只看到周期，不看原始 `Y`，会误以为严重过饱和已经被算法解决。
 
@@ -156,9 +158,9 @@ def solve(
     return result
 ```
 
-该实现先建立覆盖 LP，再依次给相邻阶段施加 `1e-6` 的微小偏置并重复求解，最后去重、平均。目的不是改变主目标，而是减少多个等价最优解之间的任意性。每个阶段变量表示有效绿色比例，约束要求每个流向的需求被一个或多个阶段覆盖。
+该实现先建立覆盖 LP，再依次给相邻阶段施加 `1e-6` 的微小偏置并重复求解，最后去重、平均。目的是减少多个等价最优解之间的任意性。每个阶段变量表示有效绿色比例，约束要求每个流向的需求被一个或多个阶段覆盖。
 
-右转默认可跳过。代码认为右转常与直行连续或受较少控制，具体安全规则仍应来自相位和通道配置。阅读结果时必须知道 `skip_right_phase=True`，否则会用错误的覆盖约束解释阶段比例。
+右转默认可跳过。代码认为右转常与直行连续或受较少控制，具体安全规则仍应来自相位和通道配置。阅读结果时需要知道 `skip_right_phase=True`，否则会用错误的覆盖约束解释阶段比例。
 
 `Webster.optimize` 再把比例转成秒：
 
@@ -240,9 +242,9 @@ def fix_min_green(plan: StagePlan, min_green=14):
     plan._update_cycle()
 ```
 
-它只增加低绿阶段，没有从其他阶段扣除等量时间。`_update_cycle()` 随后按全部灯色重新求和周期。因此所谓“修复”会把周期增大，而不是在不变量 `cycle == 原目标周期` 下修复。上层如果仍使用原周期去做设备校验，就会发生不一致。
+它只增加低绿阶段，没有从其他阶段扣除等量时间。`_update_cycle()` 随后按全部灯色重新求和周期。因此这里的“修复”会把周期增大，而不是在不变量 `cycle == 原目标周期` 下修复。上层如果仍使用原周期去做设备校验，就会发生不一致。
 
-### Webster 未接线：唯一调用点参数错位
+### Webster 未进入调用链：唯一调用点参数错位
 
 `WebsterAdapter.optimize` 的签名是 `optimize(plan, volume, saturated_flow_rate, cycle_lim=[45,180], x_p=0.9)`（`webster.py`）。全仓唯一调用点在 `rosea_songjiang/modules/evaluator/diff.py`：
 
@@ -253,13 +255,13 @@ webster_plan = WebsterAdapter.optimize(
 
 四个实参里，第一个 `segment` 不是 `StagePlan`，第四个 `orig_plan` 落到了 `cycle_lim` 上。函数第一行 `cycle_lim[0] = max(...)` 就会对 `BasePlan` 取下标。
 
-因此这套 Webster 实现处于“未接线”状态：线上单点的周期来自 `SingleNodeOptModel` 的分段周期模型和 `signal_robust_optimize`，不是 Webster。第 11 章把它当作参考模型讲解，这里给出它没有进入生产链的证据。
+因此这套 Webster 实现尚未进入生产调用链：线上单点的周期来自 `SingleNodeOptModel` 的分段周期模型和 `signal_robust_optimize`，不是 Webster。第 11 章把它当作参考模型讲解，这里给出它没有进入生产链的证据。
 
 ### `solve` 没有覆盖检查
 
 `Webster.solve` 的约束是按 `phase_info` 里的阶段-流向表建的（`webster.py`），只为出现过的流向建约束。关键流向如果没有被任何阶段服务，它不会进入约束，LP 也不会报不可行；若所有阶段都为空，阶段变量全为 0，后续 `optimize` 里的 `sum(green_splits_ratio.values())` 还会除以 0。
 
-第 11.7 节给出的三步检查（覆盖集合、预算检查、归一化回代）在这里同样适用。这三步在现有实现里还没有落地，所以“LP 求解成功”不能证明关键流向都拿到了绿。
+第 11.7 节给出的三步检查（覆盖集合、预算检查、归一化回代）在这里同样适用。这三步在现有实现里还没有实现，所以“LP 求解成功”不能证明关键流向都拿到了绿。
 
 ## 26.3 离线单点模型的完整主循环
 
@@ -492,7 +494,7 @@ def cycle_opt(settings: dict, ds: float = None):
     return round(cycle)
 ```
 
-此函数没有检查 `main_saturation == step_saturation_two` 或 `max_saturation == main_saturation`。如果配置阈值相等，插值区间会除零。参数来自数据库或配置时，必须有启动校验，而不能只依赖 Python 抛异常。
+此函数没有检查 `main_saturation == step_saturation_two` 或 `max_saturation == main_saturation`。如果配置阈值相等，插值区间会除零。参数来自数据库或配置时，需要有启动校验，而不能只依赖 Python 抛异常。
 
 `pattern_selected` 的完整过滤器如下：
 
@@ -691,7 +693,7 @@ def split_assign(
   -> 最终周期 += 所有补绿量
 ```
 
-因此返回的 `Cycle` 不是 `cycle_opt` 的目标周期。上层必须把返回周期当成新方案事实，不能继续用原来周期做下发或协调。若设备目标时间是 90 秒，而算法返回 94 秒，必须明确这是算法主动改变周期，还是应拒绝并重新求解。
+因此返回的 `Cycle` 不是 `cycle_opt` 的目标周期。上层需要把返回周期当成新方案事实，不能继续用原来周期做下发或协调。若设备目标时间是 90 秒，而算法返回 94 秒，需要明确这是算法主动改变周期，还是应拒绝并重新求解。
 
 还有一处对象别名问题。`split_assign` 里先执行 `pattern_opt = plan`，随后 `pattern_opt.update({"Cycle": ...})` 和 `pattern_opt.update({"Stages": ...})`。`pattern_opt` 与 `planpool` 里的 `plan` 是同一个字典，这两次更新会**原地修改方案池中的原方案**。如果同一方案池被多个窗口、多次调用复用，后一次计算会看到前一次被改过的 `Cycle` 和 `Stages`，结果依赖调用顺序。正确做法是先 `copy.deepcopy(plan)` 或构造新字典，再写结果。
 
@@ -756,7 +758,7 @@ def adaptive_single(data: dict, settings: dict):
 - 同一过滤结果再次传入 `split_assign` 时使用未定义的 `pool`。
 - 返回的第三个值仍是初始 `cycle_org`，而 `pattern_opt` 可能因最小绿修复具有更大周期。
 
-因此该入口到达此函数时会触发 `NameError`。即使把变量名统一，返回周期也必须改为实际 `pattern_opt["Cycle"]`，否则调用者会记录一个与方案阶段总时长不一致的目标周期。
+因此该入口到达此函数时会触发 `NameError`。即使把变量名统一，返回周期也需要改为实际 `pattern_opt["Cycle"]`，否则调用者会记录一个与方案阶段总时长不一致的目标周期。
 
 ## 26.8 本章源码结论
 

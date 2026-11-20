@@ -32,7 +32,7 @@ permalink: /
 6. 评价与综合实践
 7. 生产源码精读
 
-书稿当前版本为 **v3.19**（2026-11-19）。仓库正在整理书稿、插图和 SignalLab 代码；正式版本以 Release 为准。
+书稿当前版本为 **v3.23**（2026-11-20，445 页，20 张正式图、114 张表）。`zh-CN/`、`figures/` 与站点正文同步自同一份源文件；PDF 只作为 [Release 附件](https://github.com/WaySense-AI/traffic-signal-control-engineering/releases/latest) 分发，不进仓库。
 
 ## 仓库内容
 
@@ -40,10 +40,18 @@ permalink: /
 zh-CN/          书稿 Markdown 源文件（Jekyll 页面）
 figures/        正式插图与部分题图
 signal-lab/     可运行的 SignalLab 教学代码
-release/        发布元数据；PDF/DOCX 将作为 Release 附件
+release/        发布元数据与校验和；PDF 只在 Release 附件中
 ```
 
-本仓库已包含书稿、插图、SignalLab 代码和公开构建工具；正文仍在校对，正式版本以 Release 为准。
+本仓库已包含书稿、插图、SignalLab 代码和公开构建工具。当前版本为定稿 v3.23（2026-11-20）。
+
+## 下载
+
+定稿 PDF 在 [Releases](https://github.com/WaySense-AI/traffic-signal-control-engineering/releases) 页面提供，不随仓库分发：
+
+- `traffic-signal-control-engineering-v3.23.pdf`：445 页 A4，供阅读与打印
+
+下载后可用 `shasum -a 256 <文件>`（macOS / Linux）或 `certutil -hashfile <文件> SHA256`（Windows），与 Release 说明中给出的校验和核对。仓库内的 Markdown 是唯一源文件，PDF 与站点由同一批源文件渲染。
 
 ## 许可
 
@@ -59,6 +67,17 @@ release/        发布元数据；PDF/DOCX 将作为 Release 附件
 ## 引用
 
 如果本书或 SignalLab 对你的研究或工程工作有帮助，请按 [CITATION.cff](CITATION.cff) 引用。
+
+### 改编或再分发
+
+若在本作品基础上改编、增补或再分发，请照下面格式署名，并按 CC BY-NC-SA 4.0 发布：
+
+```text
+本作品改编自 郭海锋《交通信号控制工程：数据、配时与执行》(v3.23, 2026)，
+原作品采用 CC BY-NC-SA 4.0 许可：
+https://github.com/WaySense-AI/traffic-signal-control-engineering
+本改编版 © 2026 [你的名字]，同为 CC BY-NC-SA 4.0；修改处见文首说明。
+```
 
 ## 参与
 

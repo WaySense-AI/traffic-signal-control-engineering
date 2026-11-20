@@ -59,5 +59,5 @@ travel_time = distance / speed
 offset_down = (offset_up + travel_time) mod common_cycle
 ```
 
-公式方向必须与相位差字段的实际定义一致。
+公式方向需要与相位差字段的实际定义一致。
 

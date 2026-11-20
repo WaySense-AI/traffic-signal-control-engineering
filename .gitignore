@@ -3,7 +3,6 @@
 __pycache__/
 *.py[cod]
 *.egg-info/
-.dsh-office.*
 
 # 渲染产物
 build/
@@ -13,14 +12,7 @@ tmp/
 # 下载字体（OFL 允许再分发，但没必要让仓库多 20MB 二进制）
 tools/fonts/
 
-# 内部文档，不公开
-COMPLIANCE-AUDIT.md
-STATUS.md
-PLAN.md
-EDITORIAL_AUDIT.md
-DELIVERY.md
-BUILD.md
-OPEN-SOURCE-PLAN.md
-ERRATA.md
-research/
-review/
+# 发布二进制：PDF 只走 Release 附件，不进仓库；DOCX 是印厂与出版社用稿，不发布
+release/**/*.pdf
+release/**/*.docx
+release/**/*.zip

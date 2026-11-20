@@ -24,10 +24,10 @@ Licensed under the SIL Open Font License, Version 1.1.
 
 ## 插图工具
 
-部分插图由 **anidoodle 0.10.1** 生成。anidoodle 引擎采用 Apache License 2.0；
-本仓库不分发引擎源码，只包含生成后的 PNG 插图。anidoodle 工程没有可用的 Git 提交；
-以 `package.json` 的 SHA-256、源 film 的 SHA-256 和输出 PNG 的 MD5 作为可复现记录。
-具体源 film、版本和输出校验值见 `figures/README.md`。
+部分插图由 **anidoodle 0.10.1** 生成。引擎采用 Apache License 2.0，本仓库不分发引擎源码，
+只包含生成后的 PNG 插图；引擎版本、生成源与输出的校验值见 `figures/README.md`。
+另有 4 张叙事图（战役地图、六层状态账、偏移传播、生产协调四张表）由仓库脚本
+`tools/make_narrative_figures.py` 直接绘制，不经过 anidoodle。
 
 ## 生产代码片段
 

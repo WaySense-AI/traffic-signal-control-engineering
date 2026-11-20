@@ -28,7 +28,7 @@ from docx.shared import Cm, Inches, Pt, RGBColor
 ROOT = Path(__file__).resolve().parents[1]
 MANUSCRIPT = ROOT / "manuscript"
 BUILD = ROOT / "build"
-BOOK_VERSION = "v3.19"
+BOOK_VERSION = "v3.23"
 OUTPUT = BUILD / f"交通信号控制工程_{BOOK_VERSION}.docx"
 
 FONT_BODY = "Noto Sans SC"
@@ -589,7 +589,7 @@ def add_cover(document: Document) -> None:
 
 def add_frontispiece(document: Document) -> bool:
     """Insert the full-page frontispiece after the cover, without a folio."""
-    frontispiece_path = ROOT / "figures" / "frontispiece.png"
+    frontispiece_path = ROOT / "figures" / "frontispiece-qr.png"
     if not frontispiece_path.exists():
         return False
 
@@ -613,7 +613,7 @@ def add_frontispiece(document: Document) -> bool:
     doc_properties = picture._inline.docPr
     doc_properties.set(
         "descr",
-        "扉页：道以立本，术以致用，知行相证，方为工程；作者郭海锋",
+        "扉页：道以立本，术以致用，知行相证，方为工程；右下角为作者公众号二维码；作者郭海锋",
     )
     doc_properties.set("title", "扉页")
 
@@ -886,8 +886,8 @@ def parse_markdown(document: Document, text: str, first_h1: bool = True) -> bool
 
         if stripped.startswith("- "):
             paragraph = document.add_paragraph()
-            paragraph.paragraph_format.left_indent = Cm(0.55)
-            paragraph.paragraph_format.first_line_indent = Cm(-0.35)
+            paragraph.paragraph_format.left_indent = Cm(0.74)
+            paragraph.paragraph_format.first_line_indent = Cm(0)
             paragraph.paragraph_format.space_after = Pt(3)
             bullet = paragraph.add_run("· ")
             set_run_font(bullet, FONT_BODY, 10.5)
@@ -898,8 +898,8 @@ def parse_markdown(document: Document, text: str, first_h1: bool = True) -> bool
         numbered = re.match(r"^\d+\.\s+(.*)$", stripped)
         if numbered:
             paragraph = document.add_paragraph()
-            paragraph.paragraph_format.left_indent = Cm(0.55)
-            paragraph.paragraph_format.first_line_indent = Cm(-0.55)
+            paragraph.paragraph_format.left_indent = Cm(0.74)
+            paragraph.paragraph_format.first_line_indent = Cm(0)
             paragraph.paragraph_format.space_after = Pt(3)
             prefix = stripped[: stripped.index(".") + 1]
             add_inline(paragraph, f"{prefix} {numbered.group(1)}")

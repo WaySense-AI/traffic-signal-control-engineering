@@ -7,6 +7,8 @@ parent: "第七部分 生产源码精读"
 
 # 第 25 章 生产数据链路：从过车事件到路口指标
 
+> 本章代码为生产源码摘录，省略 import、依赖注入、日志和其他方法；不能单独运行。
+
 前六部分使用按时钟周期和路口对象抽象出来的模型，便于逐步验证公式。第 24 章的四路口案例走的也是这条教学链路。但生产系统并没有从这些教学对象开始运行，而是从设备过车事件开始，依次经过 Kafka、Flink、SDK 流量处理、补全、车道映射和指标聚合。本章离开简化模型，直接阅读 WaySense 当前实现。
 
 本章以 WaySense 工程中的实现为例。代码片段保留完整的函数或方法主体，删去的只有无关 import、日志配置和其他方法；路径、类名、字段名和运算符保持原样，内部系统名统一改为 offline-dw/离线数仓。阅读时先看类型和单位，再看公式。
@@ -65,7 +67,7 @@ class FlowprocessTool:
         return cross_traffic_data
 ```
 
-这段代码只规定 `Volume` 求和、`QueueLen` 求平均，输出窗口的 `StartTime`、`EndTime` 和 `Interval` 由 `DataReader` 的分组结构携带。调用者不能仅凭这个函数体推断输出窗口长度，必须继续阅读 `DataReader.fetch_flow_data` 和 `merge_flow_data`。
+这段代码只规定 `Volume` 求和、`QueueLen` 求平均，输出窗口的 `StartTime`、`EndTime` 和 `Interval` 由 `DataReader` 的分组结构携带。调用者不能仅凭这个函数体推断输出窗口长度，需要继续阅读 `DataReader.fetch_flow_data` 和 `merge_flow_data`。
 
 这里还把 `Estimated` 和 `Confidence` 列保留在候选字段中。生产数据并不只有数值，来源和质量字段是同一记录的一部分。
 
@@ -204,17 +206,17 @@ def convert_to_movement_data(
     return lane_data_ret, direction_flow_ret
 ```
 
-这个函数比教学代码多出四种真实语义。
+这个函数比教学代码多出四种实际处理。
 
-第一，缺失方向流量写为 `Volume=-1`、`Confidence=0`，而不是 0。零流量和缺失流量在后续补全分支中必须区分。
+第一，缺失方向流量写为 `Volume=-1`、`Confidence=0`，而不是 0。零流量和缺失流量在后续补全分支中需要区分。
 
 第二，混合车道按 `Movement.mapping_to_standard_movement` 返回的系数拆分。代码先令 `lane_num_coef * Volume` 经过 `int()`，再求和。两辆车按 1/2、1/2 拆，每份截断为 1，合计 2，恰好守恒；但四辆车按 1/3、1/3、1/3 拆，每份 1.333 截断为 1，合计 3，少 1 辆；两辆车按三份拆，0.667 截断为 0，合计 0，少 2 辆。整数截断不是守恒变换，损失方向取决于车辆数和系数。
 
 第三，没有匹配车道时令 `sum_lane_nums=0.05`，再通过 `sum_lane_nums > 0.1` 输出缺失。这个分支避免除零，但如果上游拓扑错误一直存在，查询层只会看到低置信度结果，无法从输出中直接区分“该方向本来没有车道”和“映射配置错误”。
 
-第四，异常替换只处理每个窗口中的一个 `LaneNo`。`abnormal_idx[dict_key]` 是单层字典，构造时同一窗口的多个异常车道会互相覆盖。函数本身没有再次验证异常索引是否完整，因此阅读覆盖率时必须回到 `Evaluator.get_abnormal_data_index`。
+第四，异常替换只处理每个窗口中的一个 `LaneNo`。`abnormal_idx[dict_key]` 是单层字典，构造时同一窗口的多个异常车道会互相覆盖。函数本身没有再次验证异常索引是否完整，因此阅读覆盖率时需要回到 `Evaluator.get_abnormal_data_index`。
 
-还有一处质量字段的断点。车道层在替换异常值时写入 `Estimated = True`、`Confidence = 0.85`（`flow_tool.py`），但生成方向流量记录时又硬编码 `"Estimated": False`，`Confidence` 只按结果是否存在取 1 或 0（`flow_tool.py`）。也就是说，车道层的“这行是估算的”标记没有传递到方向层；到了 25.10 的算法链路，质量字段还会再被默认值覆盖一次。读质量字段时必须区分它在哪一层产生、在哪一层丢失。
+还有一处质量字段的丢失。车道层在替换异常值时写入 `Estimated = True`、`Confidence = 0.85`（`flow_tool.py`），但生成方向流量记录时又硬编码 `"Estimated": False`，`Confidence` 只按结果是否存在取 1 或 0（`flow_tool.py`）。也就是说，车道层的“这行是估算的”标记没有传递到方向层；到了 25.10 的算法链路，质量字段还会再被默认值覆盖一次。读质量字段时需要区分它在哪一层产生、在哪一层丢失。
 
 映射循环的渐近复杂度约为 \(O(T \cdot L \cdot M)\)，其中 \(T\) 是时间窗口数，\(L\) 是单个路口车道数，\(M\) 是标准流向量。函数在外层每次时间步都重新遍历全部方向流向，实际常数还会随路口数和标准流向数增加。对 96 个 15 分钟窗口尚可接受，扩展到分钟级和大地图后，缓存拓扑索引和向量化分组会成为必要优化。
 
@@ -236,7 +238,7 @@ def calculate_variance(dps, moving_average):
     return variance
 ```
 
-这段函数直接暴露一个重要边界：当所有基线值都是 `None` 时，`count` 等于 `len(dps)`，分母为 0，Python 会抛出 `ZeroDivisionError`。这不是“方差为 0”，而是没有样本可估方差；调用方必须先检查有效样本量，并设置最小样本门槛（例如少于 3 个有效点就不做 3σ 判断）。完整检测方法如下：
+这段函数直接暴露一个重要问题：当所有基线值都是 `None` 时，`count` 等于 `len(dps)`，分母为 0，Python 会抛出 `ZeroDivisionError`。这不是“方差为 0”，而是没有样本可估方差；调用方需要先检查有效样本量，并设置最小样本门槛（例如少于 3 个有效点就不做 3σ 判断）。完整检测方法如下：
 
 ```python
 @staticmethod
@@ -353,9 +355,9 @@ def anomaly_detection_by_lane(
     return merged_df_concat
 ```
 
-代码使用 EWMA 偏差 `abs(x - ewm)`，却与残差平方方差 `3 * var` 比较；量纲分别是车辆数和“车辆数的平方”。这不是标准三倍标准差判断，阈值解释必须按实现本身理解。代码也没有把 `WrongFinder` 的物理矛盾结果并入 `get_abnormal_data_index`，后者只选择 `time_wrong_finder == True`，且同一窗口只保留最后一个异常车道。
+代码使用 EWMA 偏差 `abs(x - ewm)`，却与残差平方方差 `3 * var` 比较；量纲分别是车辆数和“车辆数的平方”。这不是标准三倍标准差判断，阈值解释需要按实现本身理解。代码也没有把 `WrongFinder` 的物理矛盾结果并入 `get_abnormal_data_index`，后者只选择 `time_wrong_finder == True`，且同一窗口只保留最后一个异常车道。
 
-这些发现不是要否定已有系统，而是说明代码精读必须看到实现和理论之间的差异。书中后续实验会复现这些边界，而不是用理想公式替代真实行为。
+这些发现不是要否定已有系统，而是说明代码精读需要看到实现和理论之间的差异。书中后续实验会复现这些边界，而不是用理想公式替代真实行为。
 
 ## 25.5 实时 Flink 聚合的完整算子
 
@@ -445,7 +447,7 @@ SingleOutputStreamOperator<Lane1MinParameter> laneMinDS =
         );
 ```
 
-完整作业还在窗口关闭后调用 `AutomobileLaneProcessWindowFunction.process`。该函数将 `captureStartTime` 设为窗口起点，将 `captureStopTime` 设为 `window.getEnd()-1`，因此输出标签是左闭右闭时间串，底层的 Flink 窗口实际是左闭右开。阅读数据时必须同时理解二者，不能只看字符串。
+完整作业还在窗口关闭后调用 `AutomobileLaneProcessWindowFunction.process`。该函数将 `captureStartTime` 设为窗口起点，将 `captureStopTime` 设为 `window.getEnd()-1`，因此输出标签是左闭右闭时间串，底层的 Flink 窗口实际是左闭右开。阅读数据时需要同时理解二者，不能只看字符串。
 
 当补全开关开启且流量为 0 或超过上限，方法会调用 Python `getLaneFlowFill`。补全失败、结果仍超限时，代码把流量改成 0 或配置上限后继续输出；这条路径产生的 0 不是原始观测零流量。
 
@@ -509,7 +511,7 @@ private Map<String, ApproachDirStateItem> createApproachDirStateMap(
 }
 ```
 
-这里按 `dirNum` 等分，使用 `BigDecimal` 保留中间小数，最后才转成转向流量。这与 Python SDK 逐份 `int()` 截断不同。同一辆混合车道车辆在两条生产路径上可能得到不同的整数结果，因此比较报表前必须先确认数据来源。
+这里按 `dirNum` 等分，使用 `BigDecimal` 保留中间小数，最后才转成转向流量。这与 Python SDK 逐份 `int()` 截断不同。同一辆混合车道车辆在两条生产路径上可能得到不同的整数结果，因此比较报表前需要先确认数据来源。
 
 ## 25.7 通行能力与饱和度的真实计算
 
@@ -624,7 +626,7 @@ private void calculateCapacityAndUpdateMaxFlow(
 真实代码给出的失败边界至少有：
 
 - 过车事件被 1 分钟窗口聚合，窗口按 `event-time` 和 `watermark` 关闭。
-- 补全失败时写入 0 或配置上限，指标层必须保留 `sourceFlow`、`adjustFlow` 等字段才能恢复证据。
+- 补全失败时写入 0 或配置上限，指标层需要保留 `sourceFlow`、`adjustFlow` 等字段才能恢复证据。
 - 5 分钟混合车道用小数拆分，离线 SDK 却可能先整数截断。
 - 多个异常车道在同一窗口进入单值异常索引时可能互相覆盖。
 - 没有信控方案时，容量会回退到历史峰值或配置值，饱和度解释随之改变。
@@ -675,7 +677,7 @@ Flink 1min 表：只有 flow / source_flow / adjust_flow，无 confidence
   -> 算法 TrafficVolume.Confidence 恒为 1
 ```
 
-关键代码在 `task_agg.py` 与 `task_optimization.py`：两处构造 `DirectionFlow` 都只传 `Volume`、`QueueLen`、`Interval` 等数值字段，不传质量字段；`algo_sdk_data_struct.py` 的 dataclass 又给了默认值 1/False。
+关键代码在 `task_agg.py` 与 `task_optimization.py`。两处构造 `DirectionFlow` 都只传 `Volume`、`QueueLen`、`Interval` 等数值字段，不传质量字段。`algo_sdk_data_struct.py` 的 dataclass 又给了默认值 1/False。
 
 在旧代 SDK 链路里，`Confidence` 有真实取值，但语义是四档离散值：
 
@@ -690,11 +692,11 @@ Flink 1min 表：只有 flow / source_flow / adjust_flow，无 confidence
 
 它不是连续概率，却被下游当作概率去比 `0.71`、`0.75` 这些门槛。`cam_imp` 同样是“能否补全”的标志（0/1），不是“这一行是否被补全”：原值直接通过和被平滑过的行都可能是 `cam_imp=1`。
 
-因此，“用置信度过滤低质量数据”在当前实现里做不到。要做，必须先让链路把质量字段一路带到算法输入，而不是在装配时用默认值填上。
+因此，“用置信度过滤低质量数据”在当前实现里做不到。要做，需要先让链路把质量字段一路带到算法输入，而不是在组装时用默认值填上。
 
 ## 25.11 小结
 
-这条链路把第 5、6、8、20 章的概念逐一落到生产字段：过车事件、1 分钟聚合、5 分钟路口聚合、补全、车道映射和指标写入。它也暴露了教学模型与生产实现之间最尖锐的差距——质量字段没有真正传到算法输入，`Confidence` 在装配时被默认值填成 1。读生产代码时，先看字段从哪来、在哪一层被丢掉，比先看公式更能解释线上结果。
+这条链路把第 5、6、8、20 章的概念逐一落到生产字段：过车事件、1 分钟聚合、5 分钟路口聚合、补全、车道映射和指标写入。它也暴露了教学模型与生产实现之间最明显的差距——质量字段没有传到算法输入，`Confidence` 在组装时被默认值填成 1。读生产代码时，先看字段从哪来、在哪一层被丢掉，比先看公式更能解释线上结果。
 
 第 26 章接着看单点优化器：当这些流量进入周期和阶段时长计算，代码里到底有几条路径、各自用什么周期模型、在哪一步把教学公式换成了工程限幅。
 

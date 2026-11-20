@@ -6,8 +6,8 @@ authors:
   - family-names: "郭"
     given-names: "海锋"
     affiliation: "WaySense"
-version: "3.19"
-date-released: "2026-11-19"
+version: "3.23"
+date-released: "2026-11-20"
 license: "CC-BY-NC-SA-4.0"
 repository-code: "https://github.com/WaySense-AI/traffic-signal-control-engineering"
 keywords:

@@ -3,13 +3,20 @@ name: CI
 on:
   push:
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    # Pinned on purpose: ubuntu-latest has already moved to 26.04, which no
+    # longer offers Python 3.9 images. Pinning keeps the oldest supported
+    # interpreter testable instead of letting the runner image break CI.
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: signal-lab
     strategy:
       fail-fast: false
       matrix:

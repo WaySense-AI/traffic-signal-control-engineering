@@ -1,8 +1,8 @@
 # 公开构建工具
 
-本目录只公开复现书稿和无障碍声明所必需的脚本。内部 QA 脚本不进入公开仓库。
+本目录包含复现书稿与无障碍声明所需的脚本。
 
-## 公开（11 个）
+## 脚本清单
 
 - `build_book.py`：Markdown → DOCX
 - `render_pdf.sh`：DOCX → PDF
@@ -15,16 +15,6 @@
 - `toc-pages.json`：目录页码，`check_pdf.py` 的输入
 - `extract_toc_pages.py`：从 PDF 生成 `toc-pages.json`
 - `audit_docx.py`：DOCX 无障碍审计；读者可据此复核 high/medium/low 全 0 的声明
-
-## 内部（不公开）
-
-- `add_table_captions.py`
-- `style_audit.py`
-- `review_audit.py`
-- `font_probe.py`
-- `make_contact_sheets.py`
-- `check_manuscript.py`
-- `toc-v*.json`
 
 ## 第三方依赖
 
