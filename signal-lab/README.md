@@ -11,7 +11,7 @@ SignalLab 是《交通信号控制工程：数据、配时与执行》的配套�
 
 ## 快速开始
 
-进入仓库根目录后执行：
+进入 `signal-lab/` 目录（若克隆的是书稿仓库，先 `cd signal-lab`；若是独立仓库，根目录即该目录）后执行：
 
 ```bash
 python3 run_all.py
@@ -83,13 +83,14 @@ signal-lab/
 ├── docs/              # 实验地图
 ├── run_all.py         # 一条命令跑测试和实验
 ├── pyproject.toml     # 可选的包安装配置
-├── LICENSE            # MIT
-└── .github/workflows/ # GitHub Actions
+└── LICENSE            # MIT
 ```
+
+持续集成在书稿仓库根的 `.github/workflows/ci.yml`：从 `signal-lab/` 目录跑测试与实验，覆盖 Python 3.9–3.12。
 
 ## 给 Agent 的说明
 
-Agent 可以从仓库根目录直接执行：
+Agent 应先进入 `signal-lab/` 目录再执行：
 
 ```bash
 python3 run_all.py
@@ -97,7 +98,7 @@ python3 run_all.py
 
 约束：
 
-- 工作目录必须是仓库根目录；
+- 工作目录必须是 `signal-lab/`（书稿仓库中）或独立仓库根目录；
 - 不需要 `pip install`，也不需要网络；
 - 不要为了让测试通过而修改 `tests/`；
 - 实验输出是确定性的，同一 Python 版本重复运行应逐字节一致；
