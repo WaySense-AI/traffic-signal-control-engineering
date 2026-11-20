@@ -16,6 +16,7 @@
 | 数值图与时空图 | matplotlib | `tools/make_figures.py` | 运行脚本 |
 | 叙事图（战役地图等 4 张） | matplotlib | `tools/make_narrative_figures.py` | 运行脚本 |
 | 部分题图、图 4-1／6-1／23-1、扉页 | anidoodle 0.10.1 | 作者本地工程 | 见下表校验值 |
+| 流程图与状态图 | Mermaid | `figures/*.mmd` | 用 mermaid-cli 或 mermaid.live 渲染 |
 
 anidoodle 引擎采用 Apache License 2.0，不随本仓库分发，仓库只包含生成后的 PNG。下表用源文件 SHA-256 与输出 MD5 记录对应关系，可据此确认某张图由哪一份源文件产出。引擎版本 `0.10.1`，其 `package.json` 的 SHA-256 为 `db894b4cb411ec080992ed689838c5f65cd502920c825965138c84d57913ffdc`。
 

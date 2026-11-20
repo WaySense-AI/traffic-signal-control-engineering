@@ -40,7 +40,7 @@ permalink: /
 zh-CN/          书稿 Markdown 源文件（Jekyll 页面）
 figures/        正式插图与部分题图
 signal-lab/     可运行的 SignalLab 教学代码
-release/        发布元数据与校验和；PDF 只在 Release 附件中
+release/        各版发布说明的存档
 ```
 
 本仓库已包含书稿、插图、SignalLab 代码和公开构建工具。当前版本为定稿 v3.23（2026-11-20）。
